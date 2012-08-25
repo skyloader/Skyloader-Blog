@@ -26,6 +26,20 @@ get '/article/:year' => sub {
     );
 };
 
+get 'article/:year/:month' => sub {
+    my $self  = shift;
+
+    my $year  = $self->param('year');
+    my $month = $self->param('month');
+
+    my $articles = $sba->month( $year, $month );
+
+    $self->render(
+        'article',
+        articles => $articles,
+    );
+};
+
 app->start;
 __DATA__
 
