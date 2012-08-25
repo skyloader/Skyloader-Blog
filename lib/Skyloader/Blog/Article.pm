@@ -71,19 +71,31 @@ sub subject {
 
     return unless $subject;
 
-    return $self->_get_articles_by(
+    #
+    # subject search must return one article
+    #
+    my $articles = $self->_get_articles_by(
         subject => $subject,
         year    => $year,
         month   => $month,
         day     => $day,
     );
+
+    return unless $articles;
+    return unless $articles->[0];
+    return $articles->[0];
 }
 
 sub _get_fullpath {
     my $self = shift;
 
     my $paths_ref;
-    opendir( my $dh, $self->directory );
+    opendir( my $dh, $self->directory )
+        or do {
+            warn "cannot open directory: " . $self->directory . "\n";
+            return;
+        };
+
     for my $year ( readdir($dh) ) {
         if ( $year =~ /\d{4}/ ) {
             for my $month (0..12) {
@@ -113,6 +125,8 @@ sub _get_articles_by {
 
     my @articles;
     my $paths_ref = $self->_get_fullpath;
+    return unless $paths_ref;
+
     for my $path (@$paths_ref) {
         my $target = File::Spec->catdir(
             $year  ? sprintf("%04d", $year)  : qr/\d{2}/,
@@ -123,7 +137,7 @@ sub _get_articles_by {
         if ( $path =~ /$target$/ ) {
             opendir(my $dh3, $path) or return;
 
-            my $mkd_str = $subject ? qr/.*$subject.*\.mkd$/ : qr/.*\.mkd$/;
+            my $mkd_str = $subject ? qr/$subject\.mkd$/ : qr/.*\.mkd$/;
             push @articles, map File::Spec->catfile($path, $_), grep /$mkd_str/, readdir($dh3);
 
             closedir $dh3;
