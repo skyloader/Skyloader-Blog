@@ -4,10 +4,7 @@ use Mojolicious::Lite;
 # Documentation browser under "/perldoc"
 plugin 'PODRenderer';
 
-get '/' => sub {
-  my $self = shift;
-  $self->render('index');
-};
+get '/' => 'index';
 
 app->start;
 __DATA__
