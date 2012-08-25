@@ -71,12 +71,19 @@ sub subject {
 
     return unless $subject;
 
-    return $self->_get_articles_by(
+    #
+    # subject search must return one article
+    #
+    my $articles = $self->_get_articles_by(
         subject => $subject,
         year    => $year,
         month   => $month,
         day     => $day,
     );
+
+    return unless $articles;
+    return unless $articles->[0];
+    return $articles->[0];
 }
 
 sub _get_fullpath {

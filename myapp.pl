@@ -2,6 +2,8 @@
 
 use Mojolicious::Lite;
 
+use File::Slurp;
+
 use Skyloader::Blog::Article;
 
 my $sba = Skyloader::Blog::Article->new(
@@ -50,8 +52,29 @@ get 'article/:year/:month/:day' => sub {
     my $articles = $sba->day( $year, $month, $day );
 
     $self->render(
-        'article',
+        'article-list',
         articles => $articles,
+    );
+};
+
+get 'article/:year/:month/:day/:subject' => sub {
+    my $self    = shift;
+
+    my $day     = $self->param('day');
+    my $month   = $self->param('month');
+    my $subject = $self->param('subject');
+    my $year    = $self->param('year');
+
+    my $article = $sba->subject( $subject, $year, $month, $day  );
+    my $content;
+    if ($article) {
+        $content = read_file($article);
+    }
+
+    $self->render(
+        'article',
+        subject => $subject,
+        content => $content,
     );
 };
 
@@ -64,14 +87,24 @@ __DATA__
 Skyloader-Blog
 
 
-@@ article.html.ep
+@@ article-list.html.ep
 % layout 'default';
-% title 'Welcome';
+% title 'Article List';
 <ul>
   % for my $article (@$articles) {
     <li> <%= $article %> </li>
   % }
 </ul>
+
+
+@@ article.html.ep
+% layout 'default';
+% title $subject;
+<div>
+  <pre>
+    <%= $content %>
+  </pre>
+</div>
 
 
 @@ layouts/default.html.ep
